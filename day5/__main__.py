@@ -60,37 +60,33 @@ def part2(f):
         pairs = []
         for i in range(0, len(seeds), 2):
             pairs.append((seeds[i], seeds[i]+seeds[i+1]))
-        pairs.sort()
-        
-        i = 0
-        current = None
-        while i < len(pairs):
-            if not current:
-                current = pairs[i]
-            s, e = current 
-            if i == len(pairs)-1:
-                for seed in range(s,e):
-                    yield seed
-                break
-            sn, en = pairs[i+1]
-
-            if e>sn:
-                current = s, en
-            else:
-                for seed in range(s,e):
-                    yield seed
-                current=None
-            i += 1
-
-
-    r = 0
-    for i in gen_seeds():
-        t = find_position(i)
-        if not r or t < r:
-            r = t
-    print(r) 
-    #lowest = min(map(find_position, gen_seeds()))
-    #print(lowest)
+        return pairs
+    min_in_range = []
+    for s, e in gen_seeds():
+        seeds = [(s, e)]
+        for rules in mapper:
+            mapped = []
+            for s2, e2 in seeds:
+                simple_pairs = [(s2, e2)]
+                for dest, source, n in rules:
+                    tmp = []
+                    for start, end in simple_pairs:
+                        if start >= source + n or end < source:
+                            tmp.append((start, end))
+                            continue
+                        # overlap
+                        s1 = max(start, source)
+                        s2 = min(end, source+n-1)
+                        mapped.append((dest+s1-source, dest+s2-source))
+                        if start < source:
+                            tmp.append((start, source))
+                        if end > source+n:
+                            tmp.append((source+n, end))
+                    simple_pairs = tmp
+                mapped.extend(simple_pairs)
+            seeds = mapped
+        min_in_range.append(min(p[0] for p in seeds))
+    print(min(min_in_range))
 
 
 test_text='''seeds: 79 14 55 13
